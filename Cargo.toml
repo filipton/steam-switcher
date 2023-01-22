@@ -2,3 +2,7 @@
 name = "fsswitcher"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+anyhow = "1.0.68"
+sysinfo = "0.27.7"
