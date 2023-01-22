@@ -1,89 +1,63 @@
 use anyhow::Result;
-use std::{
-    io::Write,
-    process::{Command, Stdio},
-};
-use sysinfo::{ProcessExt, SystemExt};
+use std::io::Write;
 
-const REGISTRY_PATH: &str = "~/.steam/registry.vdf";
+use crate::steam::{kill_steam, launch_steam, modify_registry_file};
+
+pub mod steam;
+
 const STEAM_COMMAND: &str = "steam-native";
 
 fn main() -> Result<()> {
-    print!("Enter username: ");
-    std::io::stdout().flush()?;
+    let res = show_menu()?;
 
-    let mut username_input = String::new();
-    std::io::stdin().read_line(&mut username_input)?;
+    match res {
+        MenuSelector::Account(username) => {
+            println!("Killing all steam processes...");
+            kill_steam();
+            println!("Steam killed! Modyfing registry.vdf...");
 
-    println!("Killing all steam processes...");
-    kill_steam();
-    println!("Steam killed! Modyfing registry.vdf...");
+            modify_registry_file(username)?;
 
-    modify_registry_file(username_input.trim())?;
-
-    Command::new("bash")
-        .arg("-c")
-        .arg(format!("{} /dev/null 2>&1 &", STEAM_COMMAND))
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .spawn()?;
+            println!("Registry file modified! Starting steam...");
+            launch_steam(STEAM_COMMAND)?;
+        }
+        MenuSelector::AddNew => {
+            unimplemented!();
+        }
+        _ => {
+            unimplemented!();
+        }
+    }
 
     Ok(())
 }
 
-fn modify_registry_file(username: &str) -> Result<()> {
-    let registry_file: String = std::fs::read_to_string(insert_home_dir(REGISTRY_PATH)?)
-        .expect("Failed to read registry file");
-
-    let mut tmp_registry_file: Vec<String> = vec![];
-    for line in registry_file.lines() {
-        if line.contains("AutoLoginUser") {
-            let tabs_count = line.matches('\t').count() - 2;
-
-            let auto_login_user: String = format!(
-                "{}{}\t\t\"{}\"",
-                "\t".repeat(tabs_count),
-                "\"AutoLoginUser\"",
-                username
-            );
-
-            let remember_password: String = format!(
-                "{}{}\t\t\"{}\"",
-                "\t".repeat(tabs_count),
-                "\"RememberPassword\"",
-                "1"
-            );
-
-            tmp_registry_file.push(auto_login_user);
-            tmp_registry_file.push(remember_password);
-
-            continue;
-        } else if line.contains("RememberPassword") {
-            continue;
-        }
-
-        tmp_registry_file.push(line.to_string());
-    }
-
-    let output_file: String = tmp_registry_file.join("\n");
-    std::fs::write(insert_home_dir(REGISTRY_PATH)?, output_file)?;
-
-    Ok(())
+enum MenuSelector {
+    Account(String),
+    AddNew,
+    None,
 }
 
-fn insert_home_dir(path: &str) -> Result<String> {
-    let home_dir = std::env::var("HOME")?;
-    Ok(path.replace('~', home_dir.as_str()))
-}
+fn show_menu() -> Result<MenuSelector> {
+    let accounts: Vec<&str> = vec!["filipton", "filipton2"];
 
-fn kill_steam() {
-    let mut system = sysinfo::System::new();
-    system.refresh_all();
-
-    for (pid, process) in system.processes() {
-        if process.name().contains("steam") {
-            println!("Killing: [{}] {}", pid, process.name());
-            process.kill();
-        }
+    for acc in 0..accounts.len() {
+        println!("{}. {}", acc + 1, accounts[acc]);
     }
+
+    println!("\nn. Add new");
+
+    let mut menu_input = String::new();
+    std::io::stdin().read_line(&mut menu_input)?;
+
+    if menu_input.trim() == "n" {
+        return Ok(MenuSelector::AddNew);
+    }
+
+    let account_index: usize = menu_input.trim().parse()?;
+    if account_index - 1 < accounts.len() {
+        return Ok(MenuSelector::Account(accounts[account_index - 1].to_string()));
+    }
+
+    return Ok(MenuSelector::None);
 }
