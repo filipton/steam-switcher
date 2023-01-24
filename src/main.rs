@@ -1,6 +1,5 @@
 use anyhow::Result;
 use config::Config;
-use std::io::{Read, Write};
 
 use crate::steam::{kill_steam, launch_steam, modify_registry_file};
 
@@ -9,8 +8,6 @@ pub mod steam;
 
 fn main() -> Result<()> {
     let mut config: Config = Config::load()?;
-    println!("{:?}", config);
-
     let res = show_menu(&mut config)?;
 
     match res {
