@@ -2,6 +2,8 @@ use anyhow::Result;
 use std::process::{Command, Stdio};
 use sysinfo::{ProcessExt, SystemExt};
 
+use crate::config::insert_home_dir;
+
 const REGISTRY_PATH: &str = "~/.steam/registry.vdf";
 
 pub fn launch_steam(steam_command: &str) -> Result<()> {
@@ -55,10 +57,6 @@ pub fn modify_registry_file(username: String) -> Result<()> {
     Ok(())
 }
 
-pub fn insert_home_dir(path: &str) -> Result<String> {
-    let home_dir = std::env::var("HOME")?;
-    Ok(path.replace('~', home_dir.as_str()))
-}
 
 pub fn kill_steam() {
     let mut system = sysinfo::System::new();
