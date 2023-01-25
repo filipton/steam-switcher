@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use anyhow::Result;
 use config::Config;
 
@@ -23,6 +25,8 @@ fn main() -> Result<()> {
             launch_steam(config.steam_command.as_str())?;
         }
         MenuSelector::AddNew => {
+            print_no_newline("Enter new username: ")?;
+
             let mut username = String::new();
             std::io::stdin().read_line(&mut username)?;
 
@@ -32,6 +36,8 @@ fn main() -> Result<()> {
             main()?;
         }
         MenuSelector::Remove => {
+            print_no_newline("Enter number of account to remove: ")?;
+
             let mut remove_index = String::new();
             std::io::stdin().read_line(&mut remove_index)?;
 
@@ -44,6 +50,13 @@ fn main() -> Result<()> {
         }
         _ => {}
     }
+
+    Ok(())
+}
+
+fn print_no_newline(line: &str) -> Result<()> {
+    print!("{}", line);
+    std::io::stdout().flush()?;
 
     Ok(())
 }
