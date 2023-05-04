@@ -1,5 +1,6 @@
 [package]
 name = "steam-switcher"
+description = "Simple cli steam switcher"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
