@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-const CONFIG_PATH: &str = "~/.rusty-switcher.json";
+const CONFIG_PATH: &str = "~/.config/ssw.json";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -13,7 +13,7 @@ impl Config {
     pub fn load() -> Result<Config> {
         let mut config: Config = Config {
             accounts: vec![],
-            steam_command: String::from("steam-native"),
+            steam_command: String::from("steam"),
         };
 
         match std::fs::read_to_string(insert_home_dir(CONFIG_PATH)?) {

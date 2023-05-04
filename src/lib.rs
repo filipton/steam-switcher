@@ -8,6 +8,7 @@ use crate::steam::{kill_steam, launch_steam, modify_registry_file};
 pub mod config;
 pub mod steam;
 
+#[allow(dead_code)]
 fn main() -> Result<()> {
     let mut config: Config = Config::load()?;
     let res = show_menu(&mut config)?;
